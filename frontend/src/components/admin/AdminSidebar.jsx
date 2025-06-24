@@ -1,5 +1,8 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
+
+
 import {
   HiOutlineLogout,
   HiOutlineBriefcase,
@@ -12,6 +15,15 @@ import {
 
 export default function AdminSidebar() {
   const location = useLocation();
+
+   const navigate = useNavigate();
+  
+    const handleLogout = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/login");
+      toast.success("Logged out successfully!");
+    };
 
   const navItems = [
     {
@@ -71,7 +83,9 @@ export default function AdminSidebar() {
         </nav>
       </div>
 
-      <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#5f8db4] transition font-sB">
+      <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#5f8db4] transition font-sB"
+      
+        onClick={handleLogout}>
         <HiOutlineLogout size={22} />
         Logout
       </button>
