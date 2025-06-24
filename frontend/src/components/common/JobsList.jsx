@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { HiOutlineArrowRight } from "react-icons/hi";
 import Pagination from "../common/Pagination"; // Make sure this exists
 
@@ -19,6 +20,7 @@ const JOBS_PER_PAGE = 8;
 
 export default function JobsList({ onViewJob, search = "" }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
 
   const filteredJobs = jobs.filter((job) =>
     [job.company, job.role, job.details, job.deadline]
@@ -34,6 +36,11 @@ export default function JobsList({ onViewJob, search = "" }) {
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
+
+
+  onViewJob = () => {
+    navigate("/description");
+  };  
 
   return (
     <div className="">

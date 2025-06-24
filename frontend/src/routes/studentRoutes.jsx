@@ -2,6 +2,7 @@ import React from "react";
 import "../index.css";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import JobsPage from "../pages/student/JobsPage";
+import JobsDescription from "../pages/student/JobDescription";
 import InternshipsPage from "../pages/student/InternshipsPage";
 import TrainingsPage from "../pages/student/TrainingsPage";
 import StudentProfile from "../pages/student/StudentProfile";
@@ -22,6 +23,14 @@ const studentRoutes = [
     element: (
       <ProtectedRoute>
         <JobsPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/description",
+    element: (
+      <ProtectedRoute>
+        <JobsDescription />
       </ProtectedRoute>
     )
   },
@@ -56,3 +65,4 @@ const studentRoutes = [
 ];
 
 export default studentRoutes;
+

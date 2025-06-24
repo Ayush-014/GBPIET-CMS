@@ -10,7 +10,7 @@ import ill1 from "../../assets/images/su_ill_1.svg";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loginRole, setLoginRole] = useState("student");
+  const [loginRole, setLoginRole] = useState('student');
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const navigate = useNavigate();
 
@@ -72,8 +72,14 @@ const Login = () => {
       } else {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        // const data = await res.json();
+{ console.log("Login response:", data)}
+
         toast.success("Login successful!");
-        navigate("/dashboard");
+        const route = loginRole === "admin"
+                        ? "/admin/dashboard"
+                        : "/dashboard";
+        navigate(route);
       }
     } catch (err) {
       toast.error("Something went wrong, please try again.");
@@ -115,6 +121,9 @@ const Login = () => {
                 >
                   <option value="student">Student</option>
                   <option value="admin">Admin</option>
+
+                  {console.log("role: " + loginRole)}
+                  
                 </select>
               </div>
             )}
@@ -187,3 +196,4 @@ const Login = () => {
 };
 
 export default Login;
+
