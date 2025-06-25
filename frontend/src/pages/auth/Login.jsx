@@ -52,7 +52,7 @@ const Login = () => {
     }
 
     const endpoint =
-      loginRole === "admin"
+      loginRole === ("admin" || "superadmin")
         ? "http://localhost:3001/api/v1/admin/login"
         : "http://localhost:3001/api/v1/students/login";
 
@@ -196,4 +196,3 @@ const Login = () => {
 };
 
 export default Login;
-
