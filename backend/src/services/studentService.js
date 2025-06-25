@@ -85,6 +85,47 @@ async function resetPassword(token, newPassword) {
   await studentRepository.updatePassword(student._id, newPassword);
   return true;
 }
+async function getAllStudentsWithFilters(filters) {
+  const query = {};
+
+  // 🔍 Filters
+  if (filters.name) {
+    query.name = { $regex: filters.name, $options: "i" };
+  }
+
+  if (filters.cgpaMin || filters.cgpaMax) {
+    query.cgpa = {};
+    if (filters.cgpaMin) query.cgpa.$gte = parseFloat(filters.cgpaMin);
+    if (filters.cgpaMax) query.cgpa.$lte = parseFloat(filters.cgpaMax);
+  }
+
+  if (filters.skills) {
+    const skillArray = filters.skills.split(",").map((s) => s.trim());
+    query.skills = { $in: skillArray };
+  }
+
+  if (filters.achievements) {
+    const achievementArray = filters.achievements.split(",").map((a) => a.trim());
+    query.achievements = { $in: achievementArray };
+  }
+
+  if (filters.batch) {
+    query.batch = filters.batch;
+  }
+
+  // 📦 Sorting
+  const sort = {};
+  if (filters.sortBy === "cgpa") {
+    sort.cgpa = filters.order === "asc" ? 1 : -1;
+  }
+
+  // 🔢 Limit
+  const limit = filters.limit ? parseInt(filters.limit) : 0; // 0 means no limit
+
+  // 🔄 Execute query
+  const students = await studentRepository.findWithFilters(query, sort, limit);
+  return students;
+}
 
 module.exports = {
   signup,
@@ -93,4 +134,5 @@ module.exports = {
   getStudentProfile,
   requestPasswordReset,
   resetPassword,
+  getAllStudentsWithFilters
 };

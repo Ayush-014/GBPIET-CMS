@@ -80,9 +80,27 @@ async function deleteAdmin(id) {
     throw error;
   }
 }
-
+async function getAllAdmins(){
+  try {
+    const admins=await adminRepository.getAllAdmins();
+    return admins;
+  } catch (error) {
+    throw new BadRequestError("Failed to fetch admin list",error);
+  }
+}
+async function getStats(){
+  try{
+    const stats=await adminRepository.getStats();
+    return stats;
+  }
+  catch(error){
+    throw new BadRequestError("Failed to get stats",error);
+  }
+}
 module.exports = {
   createAdmin,
   signIn,
   deleteAdmin,
+  getAllAdmins,
+  getStats
 };

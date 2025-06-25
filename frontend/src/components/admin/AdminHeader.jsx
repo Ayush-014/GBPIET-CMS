@@ -63,10 +63,10 @@ export default function AdminHeader() {
         /> */}
 
         {/* Profile */}
-        <div className="flex items-center justify-end gap-2">
+        {/* <div className="flex items-center justify-end gap-2">
           <HiOutlineUserCircle size={28} className="text-gray-700" />
           <span className="font-sM text-gray-700 text-sm sm:text-base hidden sm:flex">Yashpreet Singh</span>
-        </div>
+        </div> */}
       </header>
 
       {/* Sidebar - Mobile Only */}

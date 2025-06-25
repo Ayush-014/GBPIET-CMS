@@ -1,9 +1,10 @@
 const { StatusCodes } = require("http-status-codes");
-const { AdminService } = require("../services");
+const { AdminService, StudentService } = require("../services");
 
 async function createAdmin(req, res, next) {
   try {
     const admin = await AdminService.createAdmin({
+      name:req.body.name,
       email: req.body.email,
       password: req.body.password,
     });
@@ -51,9 +52,49 @@ async function deleteAdmin(req, res, next) {
     next(error);
   }
 }
-
+async function getAllAdmins(req,res,next){
+  try{
+    const response=await AdminService.getAllAdmins();
+    return res.status(StatusCodes.OK).json({
+      success:true,
+      message:"All admins fetched successfully",
+      data:response
+    })
+  }
+  catch(error){
+    next(error);
+  }
+}
+async function getStats(req,res,next){
+  try{
+    const response=await AdminService.getStats();
+    return res.status(StatusCodes.OK).json({
+      success:true,
+      message:"Fetched all details",
+      data:response
+    })
+  }
+  catch(error){
+    next(error);
+  }
+}
+async function getAllStudents(req, res, next) {
+  try {
+    const students = await StudentService.getAllStudentsWithFilters(req.query);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Students fetched successfully",
+      data: students,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 module.exports = {
   createAdmin,
   signIn,
   deleteAdmin,
+  getAllAdmins,
+  getStats,
+  getAllStudents
 };

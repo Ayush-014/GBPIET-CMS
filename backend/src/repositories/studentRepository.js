@@ -53,6 +53,9 @@ class StudentRepository extends CrudRepository {
     await student.save();
     return student;
   }
+  async findWithFilters(query, sort = {}, limit = 10){
+  return Student.find(query).sort(sort).limit(limit);
+}
 }
 
 module.exports = StudentRepository;

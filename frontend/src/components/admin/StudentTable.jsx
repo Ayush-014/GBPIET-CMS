@@ -1,6 +1,6 @@
 import React, { useMemo, useState, Fragment, useEffect } from "react";
 import { useTable, useSortBy, useGlobalFilter } from "react-table";
-import { students } from "../../utils/studentsData.js";
+import axios from "axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
@@ -10,15 +10,46 @@ import { HiChevronDown, HiChevronUp, HiDownload } from "react-icons/hi";
 import Pagination from "../../components/common/Pagination";
 
 export default function StudentsTable() {
-  const data = useMemo(() => students, []);
+  const [data, setData] = useState([]);
+  const [sortBy, setSortBy] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
-  const columns = useMemo(() => [
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/v1/admin/students", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+        console.log("Fetched students:", response.data);
+        setData(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        setData([]);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const columns = useMemo(
+  () => [
     { Header: "Name", accessor: "name" },
     { Header: "Institute ID", accessor: "instituteId" },
     { Header: "Department", accessor: "department" },
     { Header: "Email", accessor: "email" },
     { Header: "CGPA", accessor: "cgpa" },
-    { Header: "Skills", accessor: "skills" },
+    {
+  Header: "Skills",
+  accessor: "skills",
+  Cell: ({ value }) => {
+    console.log("skillvalue:", value);
+    return value?.join(", ") || "-";
+  }
+},
+
     {
       Header: "Resume",
       accessor: "resume",
@@ -44,13 +75,10 @@ export default function StudentsTable() {
       ),
       disableSortBy: true,
     },
-  ], []);
+  ],
+  []
+);
 
-  // Controlled sortBy state for the table
-  const [sortBy, setSortBy] = useState([]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
 
   const {
     getTableProps,
@@ -60,7 +88,7 @@ export default function StudentsTable() {
     prepareRow,
     setGlobalFilter,
     setSortBy: setTableSortBy,
-    state: { globalFilter, sortBy: tableSortBy }
+    state: { globalFilter }
   } = useTable(
     { columns, data, initialState: { sortBy } },
     useGlobalFilter,
@@ -71,21 +99,22 @@ export default function StudentsTable() {
     setTableSortBy(sortBy);
   }, [sortBy, setTableSortBy]);
 
-  // Pagination logic
   const startIndex = (currentPage - 1) * rowsPerPage;
   const selectedRows = rows.slice(startIndex, startIndex + rowsPerPage);
   const totalPages = Math.ceil(rows.length / rowsPerPage);
 
-  // Export functions remain the same
+  // Export Functions
+  const getFilteredData = () => rows.map(row => row.original);
+
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(getFilteredData());
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Students");
     XLSX.writeFile(wb, "students_data.xlsx");
   };
 
   const exportToCSV = () => {
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(getFilteredData());
     const csv = XLSX.utils.sheet_to_csv(ws);
     const blob = new Blob([csv], { type: "text/csv" });
     saveAs(blob, "students_data.csv");
@@ -94,7 +123,7 @@ export default function StudentsTable() {
   const exportToPDF = () => {
     const doc = new jsPDF();
     const headers = [["Name", "Institute ID", "Department", "Email", "CGPA", "Skills"]];
-    const tableData = data.map(student => [
+    const tableData = getFilteredData().map(student => [
       student.name,
       student.instituteId,
       student.department,
@@ -103,13 +132,7 @@ export default function StudentsTable() {
       student.skills
     ]);
     doc.text("Students Data", 14, 20);
-    autoTable(doc, {
-      startY: 30,
-      head: headers,
-      body: tableData,
-      theme: "striped",
-      headStyles: { fillColor: [60, 137, 201] },
-    });
+    autoTable(doc, { startY: 30, head: headers, body: tableData, theme: "striped", headStyles: { fillColor: [60, 137, 201] } });
     doc.save("students_data.pdf");
   };
 
@@ -122,98 +145,80 @@ export default function StudentsTable() {
 
   return (
     <div className="p-4 sm:p-6">
-      {/* Search + Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 mt-2 justify-between flex-wrap">
         <input
           className="px-4 py-2 rounded-full w-full sm:w-72 shadow-sm focus:outline-none focus:ring-1 focus:ring-[#235782] text-sm sm:text-base border border-gray-300"
           placeholder="Search"
           value={globalFilter || ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          aria-label="Search students"
         />
 
         <div className="flex gap-3 flex-wrap items-center justify-start sm:justify-end w-full sm:w-auto">
-          {/* Sort By Dropdown */}
           <Menu as="div" className="relative inline-block text-left">
             <Menu.Button className="px-4 py-2 rounded-full border text-gray-600 hover:bg-gray-100 shadow-sm flex items-center gap-1 cursor-pointer hover:shadow-[0_0_8px_2px_rgba(41,69,179,0.6)] transition-shadow duration-300 text-sm sm:text-base ">
               Sort by
               <HiChevronDown className="w-4 h-4" />
             </Menu.Button>
 
-            <Transition
-              as={Fragment}
+            <Transition as={Fragment}
               enter="transition ease-out duration-100"
               enterFrom="transform opacity-0 scale-95"
               enterTo="transform opacity-100 scale-100"
               leave="transition ease-in duration-75"
               leaveFrom="transform opacity-100 scale-100"
-              leaveTo="transform opacity-0 scale-95"
-            >
-              <Menu.Items className="absolute right-0 z-10 w-44 origin-top-right bg-white  rounded-md shadow-lg focus:outline-none text-sm sm:text-base">
+              leaveTo="transform opacity-0 scale-95">
+              <Menu.Items className="absolute right-0 z-10 w-44 origin-top-right bg-white rounded-md shadow-lg focus:outline-none text-sm sm:text-base">
                 <div className="py-1 text-gray-700">
-                  {columns
-                    .filter(col => !col.disableSortBy && col.accessor)
-                    .map((col) => {
-                      const isSorted = sortBy.find(s => s.id === col.accessor);
-                      const direction = isSorted ? (isSorted.desc ? "desc" : "asc") : null;
+                  {columns.filter(col => !col.disableSortBy && col.accessor).map((col) => {
+                    const isSorted = sortBy.find(s => s.id === col.accessor);
+                    const direction = isSorted ? (isSorted.desc ? "desc" : "asc") : null;
 
-                      return (
-                        <Menu.Item key={col.accessor}>
-                          {({ active }) => (
-                            <button
-                              className={`w-full text-left px-4 py-2 flex justify-between items-center ${
-                                active ? "bg-gray-100" : ""
-                              }`}
-                              onClick={() => {
-                                if (!direction) {
-                                  setSortBy([{ id: col.accessor, desc: false }]);
-                                } else if (direction === "asc") {
-                                  setSortBy([{ id: col.accessor, desc: true }]);
-                                } else {
-                                  setSortBy([]);
-                                }
-                              }}
-                            >
-                              {col.Header}
-                              {direction === "asc" && <HiChevronUp />}
-                              {direction === "desc" && <HiChevronDown />}
-                            </button>
-                          )}
-                        </Menu.Item>
-                      );
-                    })}
+                    return (
+                      <Menu.Item key={col.accessor}>
+                        {({ active }) => (
+                          <button
+                            className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}
+                            onClick={() => {
+                              if (!direction) {
+                                setSortBy([{ id: col.accessor, desc: false }]);
+                              } else if (direction === "asc") {
+                                setSortBy([{ id: col.accessor, desc: true }]);
+                              } else {
+                                setSortBy([]);
+                              }
+                            }}
+                          >
+                            {col.Header}
+                            {direction === "asc" && <HiChevronUp />}
+                            {direction === "desc" && <HiChevronDown />}
+                          </button>
+                        )}
+                      </Menu.Item>
+                    );
+                  })}
                 </div>
               </Menu.Items>
             </Transition>
           </Menu>
 
-          {/* Export Dropdown */}
           <Menu as="div" className="relative inline-block text-left">
-            <Menu.Button
-              className="inline-flex justify-center items-center gap-2 px-4 py-2 rounded-full border text-gray-600 hover:bg-gray-100 shadow-sm cursor-pointer hover:shadow-[0_0_8px_2px_rgba(41,69,179,0.6)] transition-shadow duration-300 text-sm sm:text-base"
-              aria-label="Export data"
-            >
+            <Menu.Button className="inline-flex justify-center items-center gap-2 px-4 py-2 rounded-full border text-gray-600 hover:bg-gray-100 shadow-sm cursor-pointer hover:shadow-[0_0_8px_2px_rgba(41,69,179,0.6)] transition-shadow duration-300 text-sm sm:text-base">
               Export Data
               <HiChevronDown className="w-4 h-4" />
             </Menu.Button>
 
-            <Transition
-              as={Fragment}
+            <Transition as={Fragment}
               enter="transition ease-out duration-100"
               enterFrom="transform opacity-0 scale-95"
               enterTo="transform opacity-100 scale-100"
               leave="transition ease-in duration-75"
               leaveFrom="transform opacity-100 scale-100"
-              leaveTo="transform opacity-0 scale-95"
-            >
+              leaveTo="transform opacity-0 scale-95">
               <Menu.Items className="absolute right-0 z-10 mt-2 w-44 origin-top-right bg-white border rounded-md shadow-lg focus:outline-none text-sm sm:text-base">
                 <div className="py-1 text-gray-700">
                   <Menu.Item>
                     {({ active }) => (
-                      <button
-                        onClick={exportToExcel}
-                        className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}
-                      >
+                      <button onClick={exportToExcel} className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}>
                         Export to Excel
                         <HiDownload className="w-4 h-4" />
                       </button>
@@ -221,10 +226,7 @@ export default function StudentsTable() {
                   </Menu.Item>
                   <Menu.Item>
                     {({ active }) => (
-                      <button
-                        onClick={exportToCSV}
-                        className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}
-                      >
+                      <button onClick={exportToCSV} className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}>
                         Export to CSV
                         <HiDownload className="w-4 h-4" />
                       </button>
@@ -232,10 +234,7 @@ export default function StudentsTable() {
                   </Menu.Item>
                   <Menu.Item>
                     {({ active }) => (
-                      <button
-                        onClick={exportToPDF}
-                        className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}
-                      >
+                      <button onClick={exportToPDF} className={`w-full text-left px-4 py-2 flex justify-between items-center ${active ? "bg-gray-100" : ""}`}>
                         Export to PDF
                         <HiDownload className="w-4 h-4" />
                       </button>
@@ -248,24 +247,13 @@ export default function StudentsTable() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded shadow-sm border border-gray-200">
-        <table
-          {...getTableProps()}
-          className="min-w-full divide-y divide-gray-200 table-auto"
-          role="table"
-          aria-label="Students data table"
-        >
+        <table {...getTableProps()} className="min-w-full divide-y divide-gray-200 table-auto">
           <thead className="bg-gray-50 font-sB">
             {headerGroups.map(headerGroup => (
               <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
                 {headerGroup.headers.map(column => (
-                  <th
-                    {...column.getHeaderProps()}
-                    className="px-3 py-4 text-left text-gray-700 whitespace-nowrap text-xs sm:text-sm"
-                    key={column.id}
-                    scope="col"
-                  >
+                  <th {...column.getHeaderProps()} className="px-3 py-4 text-left text-gray-700 whitespace-nowrap text-xs sm:text-sm" key={column.id}>
                     {column.render("Header")}
                   </th>
                 ))}
@@ -278,11 +266,7 @@ export default function StudentsTable() {
               return (
                 <tr {...row.getRowProps()} className="hover:bg-gray-50 font-normal" key={row.id}>
                   {row.cells.map(cell => (
-                    <td
-                      {...cell.getCellProps()}
-                      className="px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
-                      key={cell.column.id}
-                    >
+                    <td {...cell.getCellProps()} className="px-3 py-2 whitespace-nowrap text-xs sm:text-sm" key={cell.column.id}>
                       {cell.render("Cell")}
                     </td>
                   ))}
@@ -293,13 +277,8 @@ export default function StudentsTable() {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="mt-4 flex justify-center">
-        <Pagination
-          current={currentPage}
-          total={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        <Pagination current={currentPage} total={totalPages} onPageChange={(page) => setCurrentPage(page)} />
       </div>
     </div>
   );
