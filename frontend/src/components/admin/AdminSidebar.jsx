@@ -55,7 +55,7 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-[#3C89C9] to-[#235782] text-white flex flex-col justify-between py-8 px-4 rounded-2xl my-5 ml-10">
+    <aside className="w-64 h-screen bg-gradient-to-b from-[#3C89C9] to-[#235782] text-white flex flex-col justify-between py-8 px-4 rounded-2xl my-5 ml-10">
       <div>
         <div className="flex flex-col items-center mb-10">
           <div className="bg-[#498BC6] w-24 h-24 rounded-full p-4 mb-2 flex justify-center items-center">

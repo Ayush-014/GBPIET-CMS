@@ -23,12 +23,17 @@ router.delete(
   AuthMiddleware.requireSuperadmin,
   AdminController.deleteAdmin
 );
-router.get('/all',AuthMiddleware.isLoggedIn,
-  AuthMiddleware.requireSuperadmin,
+router.get('/all',
+  // AuthMiddleware.requireSuperadmin,
   AdminController.getAllAdmins
 );
-router.get('/stats',AuthMiddleware.isLoggedIn,AuthMiddleware.requireAdmin,AdminController.getStats);
-router.get('/students',AuthMiddleware.isLoggedIn,AuthMiddleware.requireAdmin,AdminController.getAllStudents)
+router.get('/stats',
+  AuthMiddleware.isLoggedIn
+  ,AuthMiddleware.requireAdmin,AdminController.getStats);
+
+router.get('/students',
+  AuthMiddleware.isLoggedIn
+  ,AuthMiddleware.requireAdmin,AdminController.getAllStudents)
 // router.get(
 //   "/",
 //   AuthMiddleware.isLoggedIn,

@@ -5,10 +5,8 @@ import StudentsData from "../pages/admin/StudentsData";
 import PostJobs from "../pages/admin/PostJobs";
 import PostTrainings from "../pages/admin/PostTrainings";
 import PostInternships from "../pages/admin/PostInternships";
-import UploadJobs from '../pages/admin/UploadJobs';
-import UploadInternships from '../pages/admin/UploadJobs';
-import UploadTrainings from '../pages/admin/UploadJobs';
-
+import UploadOpportunities from "../pages/admin/UploadOpportunities";
+import JobDescription from "../pages/student/JobDescription";
 
 const adminRoutes = [
   { path: "/admin/dashboard", element: <AdminDashboard /> },
@@ -16,9 +14,13 @@ const adminRoutes = [
   { path: "/admin/jobs", element: <PostJobs /> },
   { path: "/admin/trainings", element: <PostTrainings /> },
   { path: "/admin/internships", element: <PostInternships /> },
-  { path: "/admin/post-job", element: <UploadJobs />},
-  { path: "/admin/post-internship", element: <UploadInternships />},
-  { path: "/admin/post-training", element: <UploadTrainings />},
+  { path: "/admin/post-opportunity", element: <UploadOpportunities />},
+  {
+      path: "/description",
+      element: (  
+        <JobDescription />
+      )
+    },
 ];
 
 export default adminRoutes;

@@ -5,7 +5,7 @@ const { HiringController } = require("../../controllers");
 const { AuthMiddleware } = require("../../middlewares");
 
 router.post(
-  "/",
+  "/post",
   AuthMiddleware.isLoggedIn,
   AuthMiddleware.requireAdmin,
   HiringController.createHiring

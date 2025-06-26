@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AdminLayout from "../../components/layouts/AdminLayout.jsx";
 import InternshipsList from "../../components/common/InternshipsList.jsx";
-import UploadDropdown from "../../components/admin/UploadDropdown.jsx";
+import UploadDropdown from "../../components/admin/UploadButton.jsx";
 
 export default function PostInternships() {
   const [search, setSearch] = useState("");

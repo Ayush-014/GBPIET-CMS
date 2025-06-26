@@ -3,13 +3,36 @@ const { HiringService } = require("../services");
 
 async function createHiring(req, res, next) {
   try {
-    const post = await HiringService.createHiring({
-      
+    const {
+      companyName,
+      role,
+      location,
+      lastDate,
+      eligibility,
+      batch,
+      description,
+      qualifications,
+      departments,
+      type,
+    } = req.body;
 
-      
-      ...req.body,
+    // Optionally validate again or log
+    console.log("Creating hiring post with data:", req.body);
+
+    const post = await HiringService.createHiring({
+      companyName,
+      role,
+      location,
+      lastDate,
+      eligibility,
+      batch,
+      description,
+      qualifications,
+      departments,
+      type,
       createdBy: req.user?.id,
     });
+
     return res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Hiring post created successfully",
@@ -19,6 +42,7 @@ async function createHiring(req, res, next) {
     next(error);
   }
 }
+
 
 async function deletePost(req, res, next) {
   try {

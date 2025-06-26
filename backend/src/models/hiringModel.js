@@ -8,6 +8,11 @@ const hiringPostSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "Company name must be at least 2 characters long"],
     },
+    role: {
+      type: String,
+      required: [true, "Role is required"],
+      trim: true,
+    },
     location: {
       type: String,
       required: [true, "Location is required"],
@@ -17,6 +22,11 @@ const hiringPostSchema = new mongoose.Schema(
       type: String,
       required: [true, "Description is required"],
       minlength: [10, "Description must be at least 10 characters long"],
+    },
+    qualifications: {
+      type: String,
+      required: [true, "Qualifications are required"],
+      minlength: [5, "Qualifications must be at least 5 characters long"],
     },
     lastDate: {
       type: Date,
@@ -30,15 +40,21 @@ const hiringPostSchema = new mongoose.Schema(
         message: "Last date must be at least 1 minute in the future",
       },
     },
+    eligibility: {
+      type: String,
+      required: [true, "Eligibility is required"],
+    },
+    batch: {
+      type: [String],
+      required: [true, "Batch is required"],
+      enum: {
+        values: ["2022-2026", "2023-2027", "2024-2028", "2025-2029"],
+        message: "{VALUE} is not a valid batch",
+      },
+    },
     departments: {
       type: [String],
       required: [true, "At least one department must be selected"],
-      validate: {
-        validator: function (value) {
-          return value.length > 0;
-        },
-        message: "Departments array cannot be empty",
-      },
       enum: {
         values: ["CSE", "ECE", "ME", "CE", "CSE (AIML)", "EE", "BT"],
         message: "{VALUE} is not a valid department",

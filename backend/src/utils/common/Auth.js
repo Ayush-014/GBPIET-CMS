@@ -15,7 +15,7 @@ function checkPassword(plainPassword, encryptedPassword) {
 
 function generateToken(payload) {
   try {
-    return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: "1h" });
+    return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: "30d" });
   } catch (error) {
     console.log(error);
     throw error;

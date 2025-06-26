@@ -20,7 +20,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchStats();
     fetchAdmins();
-  }, []);
+  }, [stats]);
 
   const fetchStats = async () => {
     try {
@@ -37,7 +37,7 @@ export default function AdminDashboard() {
 
   const fetchAdmins = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/v1/admins/all", {
+      const response = await axios.get("http://localhost:3001/api/v1/admin/all", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3001/api/v1/admins/${id}`, {
+      await axios.delete(`http://localhost:3001/api/v1/admin/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }

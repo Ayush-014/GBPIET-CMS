@@ -18,7 +18,7 @@ const signup = async (data) => {
   const newStudent = await studentRepository.create(data);
   return {
     message: "Student registered successfully.",
-    user: {
+    data: {
       name: newStudent.name,
       email: newStudent.email,
       instituteId: newStudent.instituteId,
@@ -45,7 +45,7 @@ const login = async ({ email, password }) => {
   return {
     message: "Login successful",
     token,
-    user: {
+    data: {
       name: student.name,
       email: student.email,
       instituteId: student.instituteId,
