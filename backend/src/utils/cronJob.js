@@ -1,16 +1,20 @@
 const cron = require("node-cron");
-const Hiring = require("../models/hiringModel"); // Adjust as needed
+const Hiring = require("../models/hiringModel");
 
 const runExpiredPostCleanup = () => {
-  // Run every day at midnight
   cron.schedule("0 0 * * *", async () => {
     try {
-      const now = new Date();
-      const result = await Hiring.deleteMany({ lastDate: { $lt: now } });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // normalize to 00:00:00
+
+      const result = await Hiring.deleteMany({ lastDate: { $lt: today } });
+
+      const indiaTime = new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      });
+
       console.log(
-        `[Cron] Deleted ${
-          result.deletedCount
-        } expired hiring posts at ${now.toISOString()}`
+        `[Cron] Deleted ${result.deletedCount} expired hiring posts at ${indiaTime}`
       );
     } catch (error) {
       console.error("[Cron] Error deleting expired posts:", error);

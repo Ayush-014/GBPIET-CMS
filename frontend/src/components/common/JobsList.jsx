@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiOutlineArrowRight } from "react-icons/hi";
 import axios from "axios";
-import Pagination from "../common/Pagination"; 
+import Pagination from "../common/Pagination";
+import { FiTrash2, FiPlus } from "react-icons/fi";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const JOBS_PER_PAGE = 8;
 
@@ -11,13 +14,15 @@ export default function JobsList({ search = "" }) {
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null)
   const navigate = useNavigate();
 
   // Fetch jobs from backend on mount
   useEffect(() => {
     async function fetchJobs() {
       try {
-        const res = await axios.get("http://localhost:3001/api/v1/hiring", {
+        const res = await axios.get("http://localhost:3001/api/v1/hiring/getopp", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -37,6 +42,36 @@ export default function JobsList({ search = "" }) {
     }
     fetchJobs();
   }, []);
+
+  useEffect(() => {
+      const getUserData = () => {
+        try {
+          const userData = JSON.parse(localStorage.getItem("user"));
+          setCurrentUser(userData);
+          console.log("userData: " + userData);
+          setIsAdmin(userData?.role === "superadmin" || userData?.role === "admin");
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+        }
+      };
+  
+      getUserData();
+    }, []);
+
+    const handleDelete = async (id) => {
+        try {
+          await axios.delete(`http://localhost:3001/api/v1/hiring/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+          setJobs((prev) => prev.filter((job) => job._id !== id));
+          toast.success("Job deleted");
+        } catch (error) {
+          console.error("Error deleting job:", error);
+          toast.error("Failed to delete job");
+        }
+      };
 
   // Filter jobs whenever `jobs` or `search` changes
   useEffect(() => {
@@ -59,10 +94,13 @@ export default function JobsList({ search = "" }) {
   const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
   const visibleJobs = filteredJobs.slice(startIndex, startIndex + JOBS_PER_PAGE);
 
-  // Go to detail view with job data passed via state
+
   const handleViewJob = (job) => {
     navigate("/description", { state: { job } });
+    console.log(job);
   };
+
+  // console.log("Visible Jobs:", visibleJobs);
 
   return (
     <div className="w-full">
@@ -94,6 +132,16 @@ export default function JobsList({ search = "" }) {
                   >
                     View <HiOutlineArrowRight className="inline-block ml-1 -mr-1" size={16} />
                   </button>
+
+                  {isAdmin && (
+                                    <button
+                                      onClick={() => handleDelete(job._id)}
+                                      className="text-red-500 hover:text-red-600 transition"
+                                    >
+                                      <FiTrash2 size={18} />
+                                    </button>
+                                  )}
+
                 </div>
               );
             })

@@ -44,6 +44,17 @@ async function deleteExpiredHiringPosts() {
   }
 }
 
+async function getHiring(id) {
+  try {
+    const hiring = await hiringRepository.get(id);
+    if (!hiring) {
+      throw new NotFoundError("Hiring post", id);
+    }
+    return hiring;
+  } catch (error) {
+    throw error;
+  }
+}
 async function deletePosts(id) {
   try {
     const deleted = await hiringRepository.destroy(id);
@@ -80,12 +91,39 @@ async function getAllHiring(query) {
     }
 
     // Pagination defaults
-    const page  = query.page && parseInt(query.page, 10) > 0 ? parseInt(query.page, 10) : 1;
-    const limit = query.limit && parseInt(query.limit, 10) > 0 ? parseInt(query.limit, 10) : 10;
-    const skip  = (page - 1) * limit;
+    const page =
+      query.page && parseInt(query.page, 10) > 0 ? parseInt(query.page, 10) : 1;
+    const limit =
+      query.limit && parseInt(query.limit, 10) > 0
+        ? parseInt(query.limit, 10)
+        : 10;
+    const skip = (page - 1) * limit;
 
     return await hiringRepository.getAllHiring(filter, sort, skip, limit);
   } catch (error) {
+    throw error;
+  }
+}
+async function getHiringByType(type) {
+  try {
+    const hiring = await hiringRepository.postByType(type);
+    if (!hiring) {
+      throw new NotFoundError("Hiring posts", type);
+    }
+    return hiring;
+  } catch (error) {
+    throw error;
+  }
+}
+// services/hiringService.js
+async function getLatestHiringPosts(limit = 5) {
+  try {
+    console.log("→ Service: getLatestHiringPosts with limit:", limit);
+    const posts = await hiringRepository.latestPosts(limit);
+    console.log("← Service: retrieved", posts.length, "posts");
+    return posts;
+  } catch (error) {
+    console.error("Error in getLatestHiringPosts:", error);
     throw error;
   }
 }
@@ -96,4 +134,7 @@ module.exports = {
   deleteExpiredHiringPosts,
   deletePosts,
   getAllHiring,
+  getHiring,
+  getHiringByType,
+  getLatestHiringPosts,
 };

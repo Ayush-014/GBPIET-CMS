@@ -6,10 +6,6 @@ import UploadDropdown from "../../components/admin/UploadButton.jsx";
 export default function PostJobs() {
   const [search, setSearch] = useState("");
 
-  const handleViewJob = (job) => {
-    alert(`Viewing job at ${job.company}: ${job.role}`);
-  };
-
   const handleAddJob = () => {
     alert("Open job posting form (to be implemented)");
   };
@@ -32,7 +28,7 @@ export default function PostJobs() {
             </div>
           </div>
         </div>
-        <JobsList onViewJob={handleViewJob} search={search} />
+        <JobsList search={search} />
       </div>
     </AdminLayout>
   );

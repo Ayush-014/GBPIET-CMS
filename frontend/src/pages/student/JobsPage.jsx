@@ -5,10 +5,6 @@ import JobsList from "../../components/common/JobsList";
 export default function JobsPage() {
   const [search, setSearch] = useState("");
 
-  const handleViewJob = (job) => {
-    alert(`Viewing job at ${job.company}: ${job.role}`);
-  };
-
   return (
     <Layout active="Jobs">
       <h1 className="text-2xl lg:text-4xl font-sR mb-4 sm:mb-6 text-center sm:text-left">Explore Opportunities</h1>
@@ -21,7 +17,7 @@ export default function JobsPage() {
           onChange={e => setSearch(e.target.value)}
         />
       </div>
-      <JobsList onViewJob={handleViewJob} search={search} />
+      <JobsList search={search} />
     </Layout>
   );
 }

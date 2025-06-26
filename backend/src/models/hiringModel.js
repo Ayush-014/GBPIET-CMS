@@ -31,14 +31,6 @@ const hiringPostSchema = new mongoose.Schema(
     lastDate: {
       type: Date,
       required: [true, "Last date to apply is required"],
-      validate: {
-        validator: function (value) {
-          const now = new Date();
-          const oneMinuteLater = new Date(now.getTime() + 60 * 1000);
-          return value > oneMinuteLater;
-        },
-        message: "Last date must be at least 1 minute in the future",
-      },
     },
     eligibility: {
       type: String,

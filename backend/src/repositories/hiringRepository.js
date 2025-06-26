@@ -41,6 +41,25 @@ class HiringRepository extends CrudRepository {
       throw error;
     }
   }
+  async postByType(type) {
+    try {
+      const hiring = await Hiring.find({ type }).sort({ lastDate: 1 });
+      return hiring;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async latestPosts(limit = 5) {
+    try {
+      console.log("→ Repository: latestPosts limit=", limit);
+      const posts = await Hiring.find().sort({ createdAt: -1 }).limit(limit);
+      console.log("← Repository: found", posts.length, "posts");
+      return posts;
+    } catch (error) {
+      console.error("Error in latestPosts:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = HiringRepository;
