@@ -28,7 +28,7 @@ const StudentSchema = new mongoose.Schema(
 
     department: {
       type: String,
-      enum: ["CSE", "ECE", "ME", "CE", "CSE (AIML)", "EE", "BT"],
+      enum: ["CSE", "ECE", "ME", "CE", "CSE (AIML)", "EE", "BT","MCA"],
       required: true,
     },
     batch: {

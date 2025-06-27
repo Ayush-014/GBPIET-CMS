@@ -4,6 +4,7 @@ const { StudentService } = require("../services");
 const createUser = async (req, res, next) => {
   try {
     const result = await StudentService.signup(req.body);
+    console.log(result);
     res.status(201).json(result);
   } catch (err) {
     next(err);

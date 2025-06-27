@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { HiOutlineUserCircle, HiOutlineMenu, HiOutlineX, HiOutlineTemplate, HiOutlineLogout,
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  HiOutlineUser,
+  HiOutlineMenu,
+  HiOutlineX,
+  HiOutlineTemplate,
+  HiOutlineLogout,
   HiOutlineBriefcase,
   HiOutlineAcademicCap,
   HiOutlineClipboardList,
-  HiOutlineIdentification } from "react-icons/hi";
+  HiOutlineIdentification
+} from "react-icons/hi";
 import { Link } from "react-router-dom";
 
 export default function Header() {
-
   const user = JSON.parse(localStorage.getItem("user"));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userId = storedUser?._id;
 
   const navItems = [
     {
@@ -33,39 +41,42 @@ export default function Header() {
       label: "Trainings",
       icon: <HiOutlineIdentification size={22} />,
       to: "/trainings"
+    },
+    {
+      label: "Profile",
+      icon: <HiOutlineUser size={22} />, 
+      to: `/profile/${userId}`
     }
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+    setSidebarOpen(false);
+  };
+
   return (
     <>
-      <header className="flex items-center justify-between gap-10 sm:gap-0 m-6 sm:m-8 ">
+      <header className="flex items-center justify-between gap-10 sm:gap-0 m-6 sm:m-8">
         {/* Hamburger Menu - Mobile Only */}
-        <button 
-          onClick={() => setSidebarOpen(true)} 
+        <button
+          onClick={() => setSidebarOpen(true)}
           className="sm:hidden text-gray-700"
           aria-label="Open menu"
         >
           <HiOutlineMenu size={26} />
         </button>
 
-        {/* Search Bar
-        <input
-          type="text"
-          placeholder="Search"
-          className="w-full sm:w-1/3 px-4 py-2 rounded-full border border-gray-300 shadow-sm focus:outline-none text-sm sm:text-base"
-        /> */}
-
-        {/* Profile */}
+        {/* Profile (Optional) */}
         {/* <div className="flex items-center justify-end gap-2 hover:text-blue-600 transition cursor-pointer"
-        onClick={() => navigate(`/profile/${user._id}`)} >
+          onClick={() => navigate(`/profile/${user._id}`)} >
           <HiOutlineUserCircle size={28} className="text-gray-700" />
           <span className="font-sM text-gray-700 text-sm sm:text-base hidden sm:flex">{user.name}</span>
         </div> */}
-
       </header>
 
       {/* Sidebar - Mobile Only */}
-      {/* Container with backdrop */}
       <div className={`fixed inset-0 z-40 sm:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         {/* Backdrop */}
         <div
@@ -79,7 +90,7 @@ export default function Header() {
           bg-gradient-to-b from-[#3C89C9] to-[#235782] text-white`}>
 
           {/* Close Button */}
-          <button 
+          <button
             className="self-end mb-4 text-white"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close menu"
@@ -89,24 +100,34 @@ export default function Header() {
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-2 text-center font-sM">
-                    {navItems.map(({ label, icon, to }) => {
-                      const isActive = location.pathname === to;
-                      return (
-                        <Link
-                          key={label}
-                          to={to}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition
-                            ${isActive
-                              ? 'bg-white text-[#235782] font-bold'
-                              : 'text-gray-200 hover:bg-[#498BC6] hover:text-white'
-                            }`}
-                        >
-                          {icon}
-                          {label}
-                        </Link>
-                      );
-                    })}
-                  </nav>
+            {navItems.map(({ label, icon, to }) => {
+              const isActive = location.pathname === to;
+              return (
+                <Link
+                  key={label}
+                  to={to}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition
+                    ${isActive
+                      ? 'bg-white text-[#235782] font-bold'
+                      : 'text-gray-200 hover:bg-[#498BC6] hover:text-white'
+                    }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  {icon}
+                  {label}
+                </Link>
+              );
+            })}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="mt-6 flex items-center gap-3 px-4 py-3 rounded-lg bg-[#498BC6] hover:bg-[#5f8db4] transition font-sB text-white"
+            >
+              <HiOutlineLogout size={22} />
+              Logout
+            </button>
+          </nav>
         </div>
       </div>
     </>

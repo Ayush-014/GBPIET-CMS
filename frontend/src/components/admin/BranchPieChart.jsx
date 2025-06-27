@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from "recharts";
+import { Pie } from "react-chartjs-2";
 import axios from "axios";
 import { toast } from "react-toastify";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend
+} from "chart.js";
+import { HiUserGroup } from "react-icons/hi";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const COLORS = [
   "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
@@ -32,10 +34,10 @@ const renderCustomizedLabel = ({
 };
 
 export default function BranchPieChart() {
-  const [branchData, setBranchData] = useState([]);
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    async function fetchStudentStats() {
+    async function fetchBranchStats() {
       try {
         const res = await axios.get("http://localhost:3001/api/v1/admin/students/branch-stats", {
           headers: {
@@ -43,59 +45,72 @@ export default function BranchPieChart() {
           },
         });
 
-        const branchCounts = res.data?.data || {};
-        const formattedData = Object.entries(branchCounts).map(([branch, count]) => ({
-          name: branch,
-          value: count,
-        }));
+        const data = res.data?.data || {};
+        const branches = Object.keys(data);
+        const counts = Object.values(data);
 
-        setBranchData(formattedData);
-      } catch (err) {
+        setChartData({
+          labels: branches,
+          datasets: [
+            {
+              label: "Students",
+              data: counts,
+              backgroundColor: COLORS,
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Error fetching branch stats:", error);
         toast.error("Failed to load branch stats");
-        console.error("Error fetching branch stats:", err);
       }
     }
 
-    fetchStudentStats();
+    fetchBranchStats();
   }, []);
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-md w-full transition-all">
-      <h3 className="text-xl font-sB mb-2 text-center text-gray-800"> Student Distribution by Branch</h3>
-      <ResponsiveContainer width="100%" height="90%">
-        <PieChart>
-          <Pie
-            data={branchData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={120}
-            innerRadius={40}
-            startAngle={0}
-            endAngle={360}
-            labelLine={false}
-            label={renderCustomizedLabel}
-            isAnimationActive={true}
-            animationDuration={600}
-            animationEasing="ease-out"
-          >
-            {branchData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value, name) => [`${value} Students`, name]}
-            contentStyle={{ fontSize: "14px" }}
-          />
-          <Legend
-            verticalAlign="bottom"
-            height={24}
-            iconSize={12}
-            wrapperStyle={{ fontSize: "13px" }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="bg-white p-6 rounded-2xl shadow-md w-full">
+        <h3 className="text-lg font-sB mb-4 text-gray-800 flex items-center justify-left gap-2">
+            <HiUserGroup className="text-[#3C89C9]" size={20} />
+            Student Distribution by Branch
+        </h3>
+
+        {chartData ? (
+            <div className="relative w-full h-[240px]">
+            <Pie
+                data={chartData}
+                options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                    position: "bottom",
+                    labels: {
+                        font: { size: 10 },
+                    },
+                    },
+                    tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                        const value = context.parsed;
+                        return `${value} Students`;
+                        },
+                    },
+                    },
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 800,
+                    easing: "easeOutQuart"
+                },
+                }}
+            />
+            </div>
+        ) : (
+            <div className="text-center text-gray-500 mt-10">Loading chart...</div>
+        )}
     </div>
   );
 }

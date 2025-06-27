@@ -11,6 +11,7 @@ export default function AdminList() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -49,18 +50,20 @@ export default function AdminList() {
     getUserData();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3001/api/v1/admin/${id}`, {
+      await axios.delete(`http://localhost:3001/api/v1/admin/${confirmDeleteId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      setAdmins((prev) => prev.filter((admin) => admin._id !== id));
+      setAdmins((prev) => prev.filter((admin) => admin._id !== confirmDeleteId));
       toast.success("Admin deleted");
+      setConfirmDeleteId(null);
     } catch (error) {
       console.error("Error deleting admin:", error);
       toast.error("Failed to delete admin");
+      setConfirmDeleteId(null);
     }
   };
 
@@ -102,7 +105,7 @@ export default function AdminList() {
       );
 
       if (response.data.success) {
-        fetchAdmins(); // refresh list
+        fetchAdmins();
         toast.success("Admin added!");
         setFormData({ name: "", email: "", password: "" });
         setShowModal(false);
@@ -150,7 +153,7 @@ export default function AdminList() {
               </div>
               {isSuperAdmin && admin._id !== currentUser?.id && (
                 <button
-                  onClick={() => handleDelete(admin._id)}
+                  onClick={() => setConfirmDeleteId(admin._id)}
                   className="text-red-500 hover:text-red-600 transition"
                 >
                   <FiTrash2 size={18} />
@@ -163,10 +166,10 @@ export default function AdminList() {
         <div className="text-gray-400 text-sm text-center">No admins found.</div>
       )}
 
-      {/* Modal */}
+      {/* Add Admin Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-30 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in font-sM">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-30 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 font-sM border border-gray-200">
             <h3 className="text-xl font-sB text-left text-gray-800 mb-6">Add New Admin</h3>
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
@@ -230,6 +233,32 @@ export default function AdminList() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm text-center font-sM border border-gray-200">
+            <h3 className="text-lg font-sB mb-4 text-gray-800">Confirm Deletion</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete this admin? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm bg-red-500 text-white hover:bg-red-600 rounded-md transition"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

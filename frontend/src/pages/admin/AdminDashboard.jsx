@@ -10,7 +10,7 @@ import AdminList from "../../components/admin/AdminList";
 import Layout from "../../components/layouts/AdminLayout";
 import LineChart from "../../components/admin/LineChart";
 import BranchPieChart from "../../components/admin/BranchPieChart";
-
+  
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout active="Dashboard">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 font-sB mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 font-sB mb-6 -mt-6">
         <StatsCard
           title="Total Students Enrolled"
           count={stats.totalStudents}

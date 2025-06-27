@@ -16,6 +16,7 @@ const signup = async (data) => {
   if (existingUser) throw new BadRequestError("Email already in use, kindly Login.");
 
   const newStudent = await studentRepository.create(data);
+  console.log(newStudent);
   return {
     message: "Student registered successfully.",
     data: {
