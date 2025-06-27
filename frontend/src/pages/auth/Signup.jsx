@@ -1,4 +1,6 @@
+// ✅ Signup.jsx using separate Loader component
 import React, { useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { HiChevronDown } from "react-icons/hi";
@@ -7,8 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 import collegelogo from "../../assets/images/collegelogowhiteV.svg";
 import ill1 from "../../assets/images/su_ill_1.svg";
-import bg_grid from "../../assets/images/bg_grid.svg";
 import { departments, batches } from "../../utils/data.js";
+import Loader from "../../components/common/Loader"; // Import Loader
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +24,7 @@ const Signup = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -64,42 +67,43 @@ const Signup = () => {
       return;
     }
 
+    const minimumLoadTime = new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsLoading(true);
+
     try {
-      const res = await fetch("http://localhost:3001/api/v1/students/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const resPromise = axios.post(
+        "http://localhost:3001/api/v1/students/signup",
+        formData
+      );
+
+      const [res] = await Promise.all([resPromise, minimumLoadTime]);
+
+      toast.success("Signup successful! Please login.");
+      setFormData({
+        name: "",
+        instituteId: "",
+        email: "",
+        password: "",
+        department: "",
+        batch: "",
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-      console.error("Signup error:", data);
-      const errorMessage =
-        data?.error?.message || data?.message || "Failed to signup";
-      toast.error(errorMessage);
-    } else {
-        toast.success("Signup successful! Please login.");
-        setFormData({
-          name: "",
-          instituteId: "",
-          email: "",
-          password: "",
-          department: "",
-          batch: "",
-        });
-      }
     } catch (err) {
-      console.error("Signup fetch error:", err);
-      toast.error("Something went wrong, please try again.");
+      console.error("Signup error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        "Failed to signup";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex flex-col md:flex-row"
-    >
+    <div className="min-h-screen w-full flex flex-col md:flex-row relative">
       <ToastContainer />
+
+      {isLoading && <Loader />} {/* Loader Component */}
 
       {/* Left Side */}
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-[#235782] text-white p-6">
@@ -107,18 +111,27 @@ const Signup = () => {
           <img src={collegelogo} alt="GBPIET Logo" className="w-20 lg:w-28" />
           <div>
             <h2 className="text-xl lg:text-2xl font-sB">GBPIET</h2>
-            <p className="text-sm lg:text-lg font-sL">Pauri-Garhwal, Uttarakhand</p>
+            <p className="text-sm lg:text-lg font-sL">
+              Pauri-Garhwal, Uttarakhand
+            </p>
           </div>
         </div>
-        <img src={ill1} alt="Students Illustration" className="w-4/5 max-w-md hidden lg:flex" />
+        <img
+          src={ill1}
+          alt="Students Illustration"
+          className="w-4/5 max-w-md hidden lg:flex"
+        />
       </div>
 
       {/* Right Side */}
       <div className="w-full md:w-1/2 flex justify-center items-center bg-[#235782]">
         <div className="w-full max-w-md rounded-2xl shadow-2xl p-10 z-10 bg-white m-6">
-          <h2 className="text-2xl text-left mb-8 font-rR font-extralight">Let’s Get Started</h2>
+          <h2 className="text-2xl text-left mb-8 font-rR font-extralight">
+            Let’s Get Started
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4 font-sR">
+            {/* Form Fields */}
             <div>
               <label className="block text-sm mb-1">Full Name</label>
               <input
@@ -168,11 +181,15 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-9 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-4 top-9 text-gray-500 hover:text-gray-700"
                 tabIndex={-1}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <AiFillEyeInvisible size={20} /> : <AiFillEye size={20} />}
+                {showPassword ? (
+                  <AiFillEyeInvisible size={20} />
+                ) : (
+                  <AiFillEye size={20} />
+                )}
               </button>
               {passwordError && (
                 <p className="text-red-600 text-xs mt-1">{passwordError}</p>
@@ -221,9 +238,9 @@ const Signup = () => {
 
             <button
               type="submit"
-              disabled={!!passwordError}
+              disabled={isLoading || !!passwordError}
               className={`w-full py-2 rounded-md transition font-rR mt-2 ${
-                passwordError
+                isLoading || passwordError
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#3C89C9] hover:bg-[#15446f] text-white"
               }`}

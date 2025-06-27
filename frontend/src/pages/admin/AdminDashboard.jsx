@@ -8,7 +8,6 @@ import {
 import StatsCard from "../../components/admin/StatsCard";
 import AdminList from "../../components/admin/AdminList";
 import Layout from "../../components/layouts/AdminLayout";
-import ActivityLog from "../../components/admin/ActivityLog";
 import LineChart from "../../components/admin/LineChart";
 import BranchPieChart from "../../components/admin/BranchPieChart";
 

@@ -17,7 +17,6 @@ const COLORS = [
 
 const RADIAN = Math.PI / 180;
 
-// Optional: customized label renderer
 const renderCustomizedLabel = ({
   cx, cy, midAngle, innerRadius, outerRadius, percent, index, name
 }) => {

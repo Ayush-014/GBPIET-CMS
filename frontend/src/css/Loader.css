@@ -1,0 +1,77 @@
+/* Loader.css */
+
+.spinner-container {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.spinner-backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(4px);
+  background: linear-gradient(to bottom, #3C89C9, #235782);
+  opacity: 0.9;
+}
+
+.spinner-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.spinner {
+  width: 3.25em;
+  transform-origin: center;
+  animation: rotate4 2s linear infinite;
+}
+
+.spinner circle {
+  fill: none;
+  stroke: hsl(214, 97%, 59%); /* Blue */
+  stroke-width: 4; /* Thicker stroke */
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash4 1.5s ease-in-out infinite;
+}
+
+.loading-text {
+  color: white;
+  font-size: 1rem;
+  font-family: sans-serif;
+  margin-top: 1rem;
+  animation: fadeIn 1s ease-in-out infinite alternate;
+}
+
+@keyframes rotate4 {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash4 {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dashoffset: -125px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -1,10 +1,14 @@
+// ✅ Login.jsx using separate Loader component
 import React, { useState } from "react";
+import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import collegelogo from "../../assets/images/collegelogowhiteV.svg";
 import ill1 from "../../assets/images/su_ill_1.svg";
+import Loader from "../../components/common/Loader"; // Import Loader
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -15,43 +19,30 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
     if (!formData.email || (!forgotPasswordMode && !formData.password)) {
       toast.error("Please fill all fields.");
-      setIsLoading(false);
       return;
     }
+    setIsLoading(true);
+    const minimumLoadTime = new Promise((res) => setTimeout(res, 2000));
 
     if (forgotPasswordMode) {
       try {
-        const res = await fetch(
-          "http://localhost:3001/api/v1/students/forgot-password",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: formData.email }),
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          toast.error(data?.message || "Failed to send reset link.");
-        } else {
-          toast.success("Password reset link sent to your email.");
-          setForgotPasswordMode(false);
-        }
+        const [res] = await Promise.all([
+          axios.post("http://localhost:3001/api/v1/students/forgot-password", {
+            email: formData.email,
+          }),
+          minimumLoadTime,
+        ]);
+        toast.success("Password reset link sent to your email.");
+        setForgotPasswordMode(false);
       } catch (err) {
-        toast.error("Something went wrong. Try again.");
+        toast.error(err.response?.data?.message || "Failed to send reset link.");
       } finally {
         setIsLoading(false);
       }
@@ -59,49 +50,37 @@ const Login = () => {
     }
 
     const endpoint =
-      loginRole === ("admin" || "superadmin")
+      loginRole === "admin"
         ? "http://localhost:3001/api/v1/admin/login"
         : "http://localhost:3001/api/v1/students/login";
 
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const [res] = await Promise.all([
+        axios.post(endpoint, formData),
+        minimumLoadTime,
+      ]);
 
-      // const responseData = await res.json();
-      // console.log("Login response:", responseData); // Debug
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errorMessage =
-          data?.error?.message || data?.message || "Failed to login";
-        toast.error(errorMessage);
-      } else {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.data));
-        // const data = await res.json();
-        {
-          console.log("Login response:", data);
-        }
-
-        toast.success("Login successful!");
-        const route = loginRole === "admin" ? "/admin/dashboard" : "/dashboard";
-        navigate(route);
-      }
+      const data = res.data;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.data));
+      toast.success("Login successful!");
+      navigate(loginRole === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (err) {
-      console.error("Login error:", err); // Debug
-      toast.error("Something went wrong, please try again.");
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error?.message ||
+          "Login failed"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row font-sM">
+    <div className="h-screen flex flex-col md:flex-row font-sM relative">
       <ToastContainer />
+
+      {isLoading && <Loader />} {/* Loader Component */}
 
       {/* Left Section */}
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-[#235782] text-white p-6">
@@ -112,11 +91,7 @@ const Login = () => {
             <p className="text-sm lg:text-lg">Pauri-Garhwal, Uttarakhand</p>
           </div>
         </div>
-        <img
-          src={ill1}
-          alt="Students Illustration"
-          className="w-4/5 max-w-md hidden lg:flex"
-        />
+        <img src={ill1} alt="Illustration" className="w-4/5 max-w-md hidden lg:flex" />
       </div>
 
       {/* Right Section */}
@@ -126,24 +101,19 @@ const Login = () => {
             {forgotPasswordMode ? "Reset Password" : "Welcome Back!"}
           </h2>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* Only show role selection when not in forgot password mode */}
             {!forgotPasswordMode && (
               <div>
                 <label className="block text-sm mb-1">Login as</label>
                 <select
                   value={loginRole}
                   onChange={(e) => setLoginRole(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="student">Student</option>
                   <option value="admin">Admin</option>
-
-                  {console.log("role: " + loginRole)}
                 </select>
               </div>
             )}
-
-            {/* Email Input */}
             <div>
               <label className="block text-sm mb-1">Email</label>
               <input
@@ -151,11 +121,9 @@ const Login = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md"
               />
             </div>
-
-            {/* Password Input (only when not forgot mode) */}
             {!forgotPasswordMode && (
               <div className="relative">
                 <label className="block text-sm mb-1">Password</label>
@@ -164,36 +132,25 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 pr-10"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-9 text-gray-500 hover:text-gray-700"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-9 text-gray-500"
                 >
-                  {showPassword ? (
-                    <AiFillEyeInvisible size={20} />
-                  ) : (
-                    <AiFillEye size={20} />
-                  )}
+                  {showPassword ? <AiFillEyeInvisible size={20} /> : <AiFillEye size={20} />}
                 </button>
               </div>
             )}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#3C89C9] text-white py-2 rounded-md hover:bg-[#15446f] transition mt-2 disabled:opacity-70"
+              className="w-full bg-[#3C89C9] text-white py-2 rounded-md hover:bg-[#15446f]"
             >
-              {isLoading
-                ? "Processing..."
-                : forgotPasswordMode
-                ? "Send Reset Link"
-                : "Login"}
+              {forgotPasswordMode ? "Send Reset Link" : "Login"}
             </button>
           </form>
-
-          {/* Forgot password link */}
           {!forgotPasswordMode && (
             <p
               onClick={() => setForgotPasswordMode(true)}
@@ -202,14 +159,10 @@ const Login = () => {
               Forgot Password?
             </p>
           )}
-
-          {/* Signup link */}
           {!forgotPasswordMode && (
             <p className="text-sm text-center mt-2">
-              Don’t have an account?{" "}
-              <Link to="/signup" className="text-blue-600 underline">
-                Signup
-              </Link>
+              Don’t have an account?{' '}
+              <Link to="/signup" className="text-blue-600 underline">Signup</Link>
             </p>
           )}
         </div>

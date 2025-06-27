@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { HiOutlineArrowRight } from "react-icons/hi";
 import axios from "axios";
 import Pagination from "../common/Pagination";
-import { FiTrash2, FiPlus } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import Loader from "../common/Loader"; // ✅ Import the Loader component
 
 const JOBS_PER_PAGE = 8;
 
@@ -15,11 +17,13 @@ export default function JobsList({ search = "" }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // ✅ Loading state
   const navigate = useNavigate();
 
   // Fetch jobs from backend on mount
   useEffect(() => {
     async function fetchJobs() {
+      setIsLoading(true); // ✅ Start loader
       try {
         const res = await axios.get(
           "http://localhost:3001/api/v1/hiring/type/job",
@@ -39,6 +43,8 @@ export default function JobsList({ search = "" }) {
           toast.error("Failed to fetch jobs. Please try again later.");
           console.error("Error fetching jobs:", err);
         }
+      } finally {
+        setIsLoading(false); // ✅ Stop loader
       }
     }
     fetchJobs();
@@ -49,7 +55,6 @@ export default function JobsList({ search = "" }) {
       try {
         const userData = JSON.parse(localStorage.getItem("user"));
         setCurrentUser(userData);
-        console.log("userData: " + userData);
         setIsAdmin(
           userData?.role === "superadmin" || userData?.role === "admin"
         );
@@ -109,73 +114,78 @@ export default function JobsList({ search = "" }) {
     navigate("/description", { state: { job } });
   };
 
-  // console.log("Visible Jobs:", visibleJobs);
-
   return (
     <div className="w-full">
-      <div className="overflow-x-auto rounded shadow-sm border border-gray-200 bg-white w-full">
-        <div className="divide-y divide-gray-200">
-          {visibleJobs.length > 0 ? (
-            visibleJobs.map((job, idx) => {
-              const formattedDate = new Date(job.lastDate).toLocaleDateString(
-                "en-GB",
-                {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                }
-              );
-              return (
-                <div
-                  key={job._id || idx}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 px-3 gap-2 hover:bg-gray-50"
-                >
-                  <span className="font-sB text-sm sm:text-base w-40 text-gray-800">
-                    {job.companyName}
-                  </span>
+      <ToastContainer />
 
-                  <div className="text-gray-700 text-sm sm:text-base font-sL text-center flex-1">
-                    {job.role} • {job.location} • {formattedDate}
-                  </div>
-
-                  <button
-                    className="font-sL bg-[#3C89C9] hover:bg-[#235782] text-white px-4 py-1.5 rounded text-xs sm:text-sm transition duration-150 shadow"
-                    onClick={() => handleViewJob(job)}
-                  >
-                    View{" "}
-                    <HiOutlineArrowRight
-                      className="inline-block ml-1 -mr-1"
-                      size={16}
-                    />
-                  </button>
-
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleDelete(job._id)}
-                      className="text-red-500 hover:text-red-600 transition"
+      {isLoading ? ( // ✅ Conditional rendering
+        <Loader />
+      ) : (
+        <>
+          <div className="overflow-x-auto rounded shadow-sm border border-gray-200 bg-white w-full">
+            <div className="divide-y divide-gray-200">
+              {visibleJobs.length > 0 ? (
+                visibleJobs.map((job, idx) => {
+                  const formattedDate = new Date(
+                    job.lastDate
+                  ).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  });
+                  return (
+                    <div
+                      key={job._id || idx}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 px-3 gap-2 hover:bg-gray-50"
                     >
-                      <FiTrash2 size={18} />
-                    </button>
-                  )}
+                      <span className="font-sB text-sm sm:text-base w-40 text-gray-800">
+                        {job.companyName}
+                      </span>
+
+                      <div className="text-gray-700 text-sm sm:text-base font-sL text-center flex-1">
+                        {job.role} • {job.location} • {formattedDate}
+                      </div>
+
+                      <button
+                        className="font-sL bg-[#3C89C9] hover:bg-[#235782] text-white px-4 py-1.5 rounded text-xs sm:text-sm transition duration-150 shadow"
+                        onClick={() => handleViewJob(job)}
+                      >
+                        View{" "}
+                        <HiOutlineArrowRight
+                          className="inline-block ml-1 -mr-1"
+                          size={16}
+                        />
+                      </button>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(job._id)}
+                          className="text-red-500 hover:text-red-600 transition"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-10 px-3 text-center text-gray-400">
+                  No jobs found.
                 </div>
-              );
-            })
-          ) : (
-            <div className="py-10 px-3 text-center text-gray-400">
-              No jobs found.
+              )}
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination
+                current={currentPage}
+                total={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
-        </div>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex justify-center">
-          <Pagination
-            current={currentPage}
-            total={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        </>
       )}
     </div>
   );
