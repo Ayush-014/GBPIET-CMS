@@ -39,6 +39,27 @@ class AdminRepository extends CrudRepository {
       throw error;
     }
   }
+    async getUserSignupsPerDayThisWeek (){
+  const today = new Date();
+  const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // Sunday
+
+  return await Student.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfWeek }
+      }
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { "_id": 1 }
+    }
+  ]);
+};
 }
 
 module.exports = AdminRepository;

@@ -9,10 +9,12 @@ async function createHiring(req, res, next) {
       location,
       lastDate,
       eligibility,
+      stipend,
+      opportunityLink,
       batch,
+      departments,
       description,
       qualifications,
-      departments,
       type,
     } = req.body;
 
@@ -25,13 +27,16 @@ async function createHiring(req, res, next) {
       location,
       lastDate,
       eligibility,
+      stipend,
+      opportunityLink,
       batch,
+      departments,
       description,
       qualifications,
-      departments,
       type,
       createdBy: req.user?.id,
     });
+    console.log(post);
 
     return res.status(StatusCodes.CREATED).json({
       success: true,
@@ -68,7 +73,6 @@ async function getHiringPosts(req, res, next) {
     // if (role === "student" && all !== "true" && !req.query.departments) {
     //   query.departments = department;
     // }
-    const query={...req.query}
 
     const posts = await HiringService.getAllHiring(query);
     return res.status(StatusCodes.OK).json({

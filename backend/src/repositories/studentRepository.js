@@ -56,6 +56,24 @@ class StudentRepository extends CrudRepository {
   async findWithFilters(query, sort = {}, limit = 10){
   return Student.find(query).sort(sort).limit(limit);
 }
+async getBranchStats() {
+    return await Student.aggregate([
+      {
+        $group: {
+          _id: "$department", // If the field is called department, replace with "$department"
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          branch: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+  }
+
 }
 
 module.exports = StudentRepository;

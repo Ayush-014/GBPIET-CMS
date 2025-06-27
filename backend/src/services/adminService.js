@@ -2,9 +2,11 @@ const { StatusCodes } = require("http-status-codes");
 const BadRequestError = require("../errors/badRequest");
 const NotFoundError = require("../errors/notFound");
 const UnauthorizedError = require("../errors/unauthorizedError");
-const { AdminRepository } = require("../repositories");
+const { AdminRepository,StudentRepository } = require("../repositories");
 const Auth = require("../utils/common/Auth");
+const Student = require("../models/studentModel");
 const adminRepository = new AdminRepository();
+const studentRepository=new StudentRepository();
 
 // Helper to handle mongoose validation errors uniformly
 function handleValidationError(error) {
@@ -20,7 +22,15 @@ function handleValidationError(error) {
   }
   throw error;
 }
-
+async function getWeekAnalysis(){
+  try{
+    const data=await adminRepository.getUserSignupsPerDayThisWeek();
+    return data;
+  }
+  catch(error){
+    throw error;
+  }
+}
 async function createAdmin(adminData) {
   try {
     const existingAdmin = await adminRepository.findByEmail(adminData.email);
@@ -80,6 +90,7 @@ async function deleteAdmin(id) {
     throw error;
   }
 }
+
 async function getAllAdmins(){
   try {
     const admins=await adminRepository.getAllAdmins();
@@ -88,6 +99,7 @@ async function getAllAdmins(){
     throw new BadRequestError("Failed to fetch admin list",error);
   }
 }
+
 async function getStats(){
   try{
     const stats=await adminRepository.getStats();
@@ -97,10 +109,34 @@ async function getStats(){
     throw new BadRequestError("Failed to get stats",error);
   }
 }
+
+async function getBranchStats() {
+  const result = await Student.aggregate([
+    {
+      $group: {
+        _id: "$department",       // Group by branch field
+        count: { $sum: 1 },   // Count students per branch
+      },
+    },
+    {
+      $sort: { count: -1 },   // Optional: sort by number of students descending
+    },
+  ]);
+
+  const formatted = {};
+  result.forEach((item) => {
+    formatted[item._id] = item.count;
+  });
+
+  return formatted;
+}
+
 module.exports = {
   createAdmin,
   signIn,
   deleteAdmin,
   getAllAdmins,
-  getStats
+  getStats,
+  getBranchStats,
+  getWeekAnalysis
 };

@@ -90,11 +90,33 @@ async function getAllStudents(req, res, next) {
     next(error);
   }
 }
+async function getBranchStats(req,res,next){
+  try {
+    const data = await AdminService.getBranchStats();
+    res.status(200).json({ data });
+  } catch (error) {
+    next(error);
+    console.error("Error in getBranchStats:", error);
+    res.status(500).json({ message: "Failed to fetch branch statistics" });
+  }
+
+}
+
+async function getWeeklySignups(req, res,next)  {
+  try {
+    const data = await AdminService.getWeekAnalysis();
+    return res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching signup data" });
+  }
+};
 module.exports = {
   createAdmin,
   signIn,
   deleteAdmin,
   getAllAdmins,
   getStats,
-  getAllStudents
+  getAllStudents,
+  getBranchStats,
+  getWeeklySignups
 };
